@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Management Panel - Yunoware</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #0a0a0a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --accent: #ffffff;
+            --success: rgba(52, 211, 153, 0.2);
+            --error: rgba(239, 68, 68, 0.2);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 200;
+            letter-spacing: -2px;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 
+                0 10px 40px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            margin-right: 1rem;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.05) 100%);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .key-list {
+            margin-top: 2rem;
+        }
+
+        .key-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .key-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .key-info {
+            flex: 1;
+        }
+
+        .key-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--accent);
+            margin-bottom: 0.25rem;
+        }
+
+        .key-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-active {
+            background: var(--success);
+            color: #34d399;
+        }
+
+        .status-banned {
+            background: var(--error);
+            color: #ef4444;
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: rgba(52, 211, 153, 0.3);
+            background: rgba(52, 211, 153, 0.1);
+        }
+
+        .notification.error {
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .glass-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Key Management</h1>
+            <p class="subtitle">Yunoware Authentication Panel</p>
+        </header>
+
+        <div class="glass-card">
+            <h2 style="margin-bottom: 1.5rem; font-weight: 300;">Create New Key</h2>
+            <form id="createKeyForm">
+                <div class="form-group">
+                    <label for="apiKey">Admin API Key</label>
+                    <input type="password" id="apiKey" placeholder="Enter your admin API key" required>
+                </div>
+                <div class="form-group">
+                    <label for="keyValue">License Key</label>
+                    <input type="text" id="keyValue" placeholder="e.g., XXXX-XXXX-XXXX-XXXX" required>
+                </div>
+                <div class="form-group">
+                    <label for="licenseType">License Type</label>
+                    <select id="licenseType">
+                        <option value="Lifetime">Lifetime</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Daily">Daily</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="duration">Duration (days, 0 for lifetime)</label>
+                    <input type="number" id="duration" value="0" min="0">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span>Create Key</span>
+                </button>
+            </form>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="margin-bottom: 1.5rem; font-weight: 300;">Manage Keys</h2>
+            <div class="form-group">
+                <label for="banKey">Ban/Unban Key</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" id="banKey" placeholder="Enter key to ban/unban" style="flex: 1;">
+                    <button class="btn btn-danger" onclick="banKey(true)">Ban</button>
+                    <button class="btn btn-primary" onclick="banKey(false)">Unban</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card">
+            <h2 style="margin-bottom: 1.5rem; font-weight: 300;">Recent Keys</h2>
+            <div id="keyList" class="key-list">
+                <p style="color: var(--text-secondary);">No keys created yet</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const API_BASE = 'https://yunoware-auth.onrender.com';
+        let recentKeys = [];
+
+        // Load saved data
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedApiKey = localStorage.getItem('adminApiKey');
+            if (savedApiKey) {
+                document.getElementById('apiKey').value = savedApiKey;
+            }
+            
+            const savedKeys = localStorage.getItem('recentKeys');
+            if (savedKeys) {
+                recentKeys = JSON.parse(savedKeys);
+                updateKeyList();
+            }
+        });
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Create key
+        document.getElementById('createKeyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const apiKey = document.getElementById('apiKey').value;
+            const keyValue = document.getElementById('keyValue').value;
+            const licenseType = document.getElementById('licenseType').value;
+            const duration = document.getElementById('duration').value;
+            
+            // Save API key
+            localStorage.setItem('adminApiKey', apiKey);
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading"></span> Creating...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/create_key?key=${encodeURIComponent(keyValue)}&license_type=${encodeURIComponent(licenseType)}&duration_days=${duration}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showNotification('Key created successfully!', 'success');
+                    
+                    // Add to recent keys
+                    const newKey = {
+                        key: keyValue,
+                        type: licenseType,
+                        duration: duration,
+                        created: new Date().toISOString(),
+                        status: 'active'
+                    };
+                    recentKeys.unshift(newKey);
+                    localStorage.setItem('recentKeys', JSON.stringify(recentKeys));
+                    updateKeyList();
+                    
+                    // Clear form
+                    document.getElementById('keyValue').value = '';
+                    document.getElementById('duration').value = '0';
+                } else {
+                    const error = await response.text();
+                    showNotification(`Error: ${error}`, 'error');
+                }
+            } catch (error) {
+                showNotification('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Ban/Unban key
+        async function banKey(banStatus) {
+            const apiKey = document.getElementById('apiKey').value;
+            const keyValue = document.getElementById('banKey').value;
+            
+            if (!keyValue) {
+                showNotification('Please enter a key', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/ban_key?key=${encodeURIComponent(keyValue)}&ban_status=${banStatus}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    showNotification(`Key ${banStatus ? 'banned' : 'unbanned'} successfully!`, 'success');
+                    
+                    // Update in recent keys
+                    const keyIndex = recentKeys.findIndex(k => k.key === keyValue);
+                    if (keyIndex !== -1) {
+                        recentKeys[keyIndex].status = banStatus ? 'banned' : 'active';
+                        localStorage.setItem('recentKeys', JSON.stringify(recentKeys));
+                        updateKeyList();
+                    }
+                    
+                    document.getElementById('banKey').value = '';
+                } else {
+                    const error = await response.text();
+                    showNotification(`Error: ${error}`, 'error');
+                }
+            } catch (error) {
+                showNotification('Network error. Please try again.', 'error');
+            }
+        }
+
+        // Update key list display
+        function updateKeyList() {
+            const keyList = document.getElementById('keyList');
+            
+            if (recentKeys.length === 0) {
+                keyList.innerHTML = '<p style="color: var(--text-secondary);">No keys created yet</p>';
+                return;
+            }
+            
+            keyList.innerHTML = recentKeys.map(key => `
+                <div class="key-item">
+                    <div class="key-info">
+                        <div class="key-value">${key.key}</div>
+                        <div class="key-meta">
+                            ${key.type} • ${key.duration > 0 ? key.duration + ' days' : 'Lifetime'} • 
+                            Created ${new Date(key.created).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <span class="status-badge status-${key.status}">${key.status}</span>
+                </div>
+            `).join('');
+        }
+
+        // Generate random key
+        function generateRandomKey() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let key = '';
+            for (let i = 0; i < 19; i++) {
+                if (i > 0 && i % 4 === 0) key += '-';
+                key += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return key;
+        }
+
+        // Add generate key button
+        document.getElementById('keyValue').addEventListener('focus', function() {
+            if (!this.value) {
+                this.value = generateRandomKey();
+            }
+        });
+    </script>
+</body>
+</html>
